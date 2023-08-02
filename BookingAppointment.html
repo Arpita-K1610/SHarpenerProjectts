@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Booking Appointment App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input, button {
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Booking Appointment App</h1>
+    <form id="registrationForm">
+      <input type="text" name="name" placeholder="Name" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="tel" name="phone" placeholder="Phone" required>
+      <button type="submit">Register</button>
+    </form>
+    <div id="userList">
+      <!-- Users will be displayed here -->
+    </div>
+  </div>
+
+  <script>
+    const registrationForm = document.getElementById('registrationForm');
+    const userList = document.getElementById('userList');
+
+    registrationForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(registrationForm);
+      const userData = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+      };
+
+      fetch('http://localhost:3001/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      })
+      .then(() => {
+        registrationForm.reset();
+        fetchUsers();
+      })
+      .catch((error) => console.error('Error registering user:', error));
+    });
+
+    function fetchUsers() {
+      fetch('http://localhost:3001/api/users')
+      .then((response) => response.json())
+      .then((data) => {
+        userList.innerHTML = '';
+        data.forEach((user) => {
+          const userElement = document.createElement('div');
+          userElement.innerHTML = `
+            <p><strong>Name:</strong> ${user.name}</p>
+            <p><strong>Email:</strong> ${user.email}</p>
+            <p><strong>Phone:</strong> ${user.phone}</p>
+            <button onclick="deleteUser(${user.id})">Delete</button>
+          `;
+          userList.appendChild(userElement);
+        });
+      })
+      .catch((error) => console.error('Error fetching users:', error));
+    }
+
+    function deleteUser(id) {
+      fetch(`http://localhost:3001/api/users/${id}`, {
+        method: 'DELETE',
+      })
+      .then(() => fetchUsers())
+      .catch((error) => console.error('Error deleting user:', error));
+    }
+
+    fetchUsers();
+  </script>
+</body>
+</html>
